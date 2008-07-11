@@ -1,0 +1,73 @@
+*linglang.txt*      Do something on basis of the current line's language
+                    Author: Thomas Link, micathom at gmail com
+
+The command |:Linglang| installs an autocommand that checks for every 
+line the cursor the language. If the language changes, a user-defined 
+action is executed.
+
+
+-----------------------------------------------------------------------
+Install~
+
+Edit the vba file and type: >
+
+    :so %
+
+See :help vimball for details. If you have difficulties or use vim 7.0, 
+please make sure, you have the current version of vimball (vimscript 
+#1502) installed or update your runtime.
+
+This script requires hookcursormoved (vimscript #2037) to be installed.
+
+
+========================================================================
+Contents~
+
+    plugin/linglang.vim
+        g:linglang_filetypes .... |g:linglang_filetypes|
+        g:linglang_actions ...... |g:linglang_actions|
+        g:linglang_words ........ |g:linglang_words|
+        g:linglang_patterns ..... |g:linglang_patterns|
+        :Linglang ............... |:Linglang|
+    autoload/linglang.vim
+        linglang#Linglang ....... |linglang#Linglang()|
+        linglang#Set ............ |linglang#Set()|
+
+
+========================================================================
+plugin/linglang.vim~
+
+                                                    *g:linglang_filetypes*
+g:linglang_filetypes           (default: [])
+    Enable |:Linglang| automatically for these filetypes.
+
+                                                    *g:linglang_actions*
+g:linglang_actions
+    Actions to be executed when switching languages.
+
+                                                    *g:linglang_words*
+g:linglang_words
+    Significant words (actually regexps matching words) per language.
+
+                                                    *g:linglang_patterns*
+g:linglang_patterns
+    Significant regexps per language.
+
+                                                    *:Linglang*
+:Linglang[!] [LANGS ...]
+    Toggle linglang support.
+    With [!], suppress message.
+
+
+========================================================================
+autoload/linglang.vim~
+
+                                                    *linglang#Linglang()*
+linglang#Linglang(...)
+
+                                                    *linglang#Set()*
+linglang#Set(mode, ?condition_name=b:hookcursormoved_syntax)
+
+
+
+vim:tw=78:fo=tcq2:isk=!-~,^*,^|,^":ts=8:ft=help:norl:

@@ -1,0 +1,25 @@
+This is a mirror of http://www.vim.org/scripts/script.php?script_id=2292
+
+The command |:Linglang| installs a buffer-local autocommand that checks 
+the current line's language. I.e. enabling linglang for the current 
+buffer won't affect other buffers. If the language of the line under the 
+cursor changes, a user-defined action (e.g., set spelllang) will be 
+executed.
+
+:Linglang[!] [LANGS ...]
+    Toggle linglang support for the current buffer.
+    With [!], suppress message.
+
+Currently supported:
+- English
+- German (latin1, utf8)
+
+In order to add a new language, you'll have to come up with some good 
+words/regexps to identify it.
+
+Language data is stored in .../autoload/linglang/LANGUAGE.ENCODING
+The fileformat is simple:
+
+- one word per line (these will be matched against word borders)
+- arbitrary regular expressions: /REGEXP/
+
