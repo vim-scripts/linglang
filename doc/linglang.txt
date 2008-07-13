@@ -1,9 +1,30 @@
-*linglang.txt*      Do something on basis of the current line's language
+*linglang.txt*      Perform actions on basis of the current line's language
                     Author: Thomas Link, micathom at gmail com
 
-The command |:Linglang| installs an autocommand that checks for every 
-line the cursor the language. If the language changes, a user-defined 
-action is executed.
+The command |:Linglang| installs an autocommand that checks the 
+current line's language. If the language changes, a user-defined 
+action (e.g., set spelllang) will be executed.
+
+:Linglang[!] [LANGS ...]
+    Toggle linglang support for the current buffer.
+    With [!], suppress message.
+
+Currently supported:
+- English
+- German
+
+In order to add a new language, you'll have to come up with some good 
+words/regexps to identify it.
+
+                                                    *linglang-data*
+Language data is stored in .../autoload/linglang/LANGUAGE.ENCODING
+The fileformat is simple:
+
+- one word per line (these will be matched against word borders)
+- arbitrary regular expressions: /REGEXP/
+
+The pattern for the words and the regexps will be joined with \| (see 
+|/bar|).
 
 
 -----------------------------------------------------------------------
@@ -24,10 +45,7 @@ This script requires hookcursormoved (vimscript #2037) to be installed.
 Contents~
 
     plugin/linglang.vim
-        g:linglang_filetypes .... |g:linglang_filetypes|
         g:linglang_actions ...... |g:linglang_actions|
-        g:linglang_words ........ |g:linglang_words|
-        g:linglang_patterns ..... |g:linglang_patterns|
         :Linglang ............... |:Linglang|
     autoload/linglang.vim
         linglang#Linglang ....... |linglang#Linglang()|
@@ -37,25 +55,13 @@ Contents~
 ========================================================================
 plugin/linglang.vim~
 
-                                                    *g:linglang_filetypes*
-g:linglang_filetypes           (default: [])
-    Enable |:Linglang| automatically for these filetypes.
-
                                                     *g:linglang_actions*
 g:linglang_actions
     Actions to be executed when switching languages.
 
-                                                    *g:linglang_words*
-g:linglang_words
-    Significant words (actually regexps matching words) per language.
-
-                                                    *g:linglang_patterns*
-g:linglang_patterns
-    Significant regexps per language.
-
                                                     *:Linglang*
 :Linglang[!] [LANGS ...]
-    Toggle linglang support.
+    Toggle linglang support for the current buffer.
     With [!], suppress message.
 
 

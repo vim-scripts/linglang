@@ -3,8 +3,8 @@
 " @Website:     http://www.vim.org/account/profile.php?user_id=4037
 " @License:     GPL (see http://www.gnu.org/licenses/gpl.txt)
 " @Created:     2008-07-11.
-" @Last Change: 2008-07-11.
-" @Revision:    0.0.81
+" @Last Change: 2008-07-12.
+" @Revision:    0.0.131
 
 if &cp || exists("loaded_linglang_autoload")
     finish
@@ -13,30 +13,36 @@ let loaded_linglang_autoload = 1
 let s:save_cpo = &cpo
 set cpo&vim
 
+let s:language_rx = {}
+let s:dir = expand('<sfile>:p:h')
 
-function! s:Initialize() "{{{3
-    if exists('b:linglang')
+function! s:Initialize(langenc) "{{{3
+    if has_key(s:language_rx, a:langenc)
         return
     endif
-    if exists('b:linglang_patterns')
-        let b:linglang = copy(b:linglang_patterns)
-    else
-        let b:linglang = copy(g:linglang_patterns)
-    endif
-    if exists('b:linglang_words')
-        let wordlist = b:linglang_words
-    else
-        let wordlist = g:linglang_words
-    endif
-    for [lang, words] in items(wordlist)
-        let rx = '\<\('. join(words, '\|') .'\)\>'
-        if has_key(b:linglang, lang)
-            let b:linglang[lang] = '\c'. b:linglang[lang] .'\|'. rx
-        else
-            let b:linglang[lang] = '\c'. rx
+
+    " TLogVAR a:langenc
+    let words = []
+    let patts = []
+    let file  = s:dir .'/linglang/'. a:langenc
+    if filereadable(file)
+        for line in readfile(file)
+            " TLogVAR line
+            if line =~ '^\s*/.\{-}/\s*$'
+                call add(patts, substitute(line, '^\s*/\(.\{-}\)/\s*$', '\1', ''))
+            else
+                call add(words, line)
+            endif
+        endfor
+        " TLogVAR words
+        if !empty(words)
+            call add(patts, '\<\('. join(words, '\|') .'\)\>')
         endif
-    endfor
-    " call TLogDBG(string(b:linglang))
+        " TLogVAR patts
+        if !empty(patts)
+            let s:language_rx[a:langenc] = '\c'. join(patts, '\|')
+        endif
+    endif
 endf
 
 
@@ -49,15 +55,19 @@ function! linglang#Linglang(...) "{{{3
             echom 'Linglang off'
         endif
     else
-        call s:Initialize()
         call hookcursormoved#Register("linechange", "linglang#Set")
         if a:0 >= 2
-            let b:linglanglangs = []
+            let b:linglang = []
             for i in range(2, a:0)
-                call add(b:linglanglangs, a:{i})
+                let langenc = a:{i} .'.'. &encoding
+                call s:Initialize(langenc)
+                call add(b:linglang, langenc)
             endfor
         else
-            let b:linglanglangs = keys(b:linglang)
+            for lang in keys(g:linglang_actions)
+                call s:Initialize(lang)
+            endfor
+            let b:linglang = map(keys(s:language_rx), 'v:val .".". &encoding')
         endif
         if verbose
             echom 'Linglang on'
@@ -71,13 +81,9 @@ function! linglang#Set(mode, ...) "{{{3
     " let condition_name = a:0 >= 1 ? a:1 : b:hookcursormoved_linechange
     " TLogVAR a:mode
     let line = getline('.')
-    " TLogVAR line, b:linglanglangs
-    " for l in b:linglanglangs
-    "     let rx = b:linglang[l]
-    "     let mtch = matchstr(line, l)
-    "     TLogVAR l, rx, mtch
-    " endfor
-    let lang = filter(copy(b:linglanglangs), 'line =~ b:linglang[v:val]')
+    " TLogVAR line, b:linglang
+    " call TLogDBG(string(s:language_rx))
+    let lang = filter(copy(b:linglang), 'line =~ s:language_rx[v:val]')
     " TLogVAR lang
     if len(lang) == 1
         call s:Set(lang[0])
@@ -85,8 +91,8 @@ function! linglang#Set(mode, ...) "{{{3
         let score0 = 0
         let lang0 = ''
         let words = split(line, '[[:space:][:punct:]]\+')
-        for lang1 in b:linglanglangs
-            let rx1 = b:linglang[lang1]
+        for lang1 in b:linglang
+            let rx1 = s:language_rx[lang1]
             let score1 = len(filter(copy(words), 'v:val =~ rx1'))
             if score1 > score0
                 " TLogVAR lang1, score1
@@ -102,10 +108,12 @@ function! linglang#Set(mode, ...) "{{{3
 endf
 
 
-function! s:Set(lang) "{{{3
-    if !exists('b:linglang_last') || b:linglang_last != a:lang
-        let b:linglang_last = a:lang
-        exec get(g:linglang_actions, a:lang, '')
+function! s:Set(langenc) "{{{3
+    if !exists('b:linglang_last') || b:linglang_last != a:langenc
+        let b:linglang_last = a:langenc
+        let lang = substitute(a:langenc, '\..*$', '', '')
+        " TLogVAR a:langenc, lang
+        exec get(g:linglang_actions, lang, '')
     endif
 endf
 
